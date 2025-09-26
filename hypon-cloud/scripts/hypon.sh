@@ -16,24 +16,22 @@ declare CONTENT_HEADER="content-type: application/json;charset=UTF-8"
 loginHypon () {
     local username
     local password
-    local loginData
-
     local loginResponse
 
     username=$(bashio::config 'username')
     password=$(bashio::config 'password')
-    loginData=$(echo "$LOGIN_TEMPLATE" | jq .username="\"$username\"" | jq .password="\"$password\"")
 
     bashio::log.info "Login Start"
 
     loginResponse=$(curl -s "$HYPON_URL/login" \
-      -H "$ACCEPT_HEADER" \
-      -H "$CONTENT_HEADER" \
-      -H 'User-Agent: Mozilla/5.0' \
-      --data-raw "$loginData")
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -H "User-Agent: Mozilla/5.0" \
+      --data-urlencode "username=$username" \
+      --data-urlencode "password=$password" \
+      --data-urlencode "oem=")
 
-      bashio::log.info "Login End"
-      echo $loginResponse | jq -r '.data.token'
+    bashio::log.info "Login End"
+    echo "$loginResponse" | jq -r '.data.token'
 }
 
 # ------------------------------------------------------------------------------
