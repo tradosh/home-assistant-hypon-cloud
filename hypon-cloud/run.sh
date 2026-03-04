@@ -31,6 +31,7 @@ loadSensorData() {
       bashio::log.info "Updating Real Time Sensors"
       update-sensor "$SOLAR_PRODUCTION_REAL_TIME_TEMPLATE" "$(echo "$realTimeData" | jq -r '.data.power_pv')" $SOLAR_PRODUCTION_REAL_TIME_NAME
       update-sensor "$GRID_IMPORT_REAL_TIME_TEMPLATE" "$(echo "$realTimeData" | jq -r '.data.meter_power')" $GRID_IMPORT_REAL_TIME_NAME
+      update-sensor "$POWER_LOAD_REAL_TIME_TEMPLATE" "$(echo "$realTimeData" | jq -r '.data.power_load')" $POWER_LOAD_REAL_TIME_NAME
       update-sensor "$BATTERY_USE_REAL_TIME_TEMPLATE" "$(echo "$realTimeData" | jq -r '.data.power_bat // .data.w_cha // .data.power_load')" $BATTERY_USE_REAL_TIME_NAME
 
     else

@@ -10,6 +10,7 @@ declare SOLAR_CHARGE_USED_TODAY_SENSOR_NAME="sensor.solar_battery_charge_today"
 #Names for Real Time Sensors
 declare SOLAR_PRODUCTION_REAL_TIME_NAME="sensor.solar_energy_now"
 declare GRID_IMPORT_REAL_TIME_NAME="sensor.grid_import_now"
+declare POWER_LOAD_REAL_TIME_NAME="sensor.power_load_now"
 declare BATTERY_USE_REAL_TIME_NAME="sensor.battery_power_flow_now"
 
 #Template Values for Daily Sensors
@@ -24,4 +25,5 @@ declare SOLAR_CHARGE_USED_TODAY_TEMPLATE='{"state": "unknown","attributes": {"st
 #Template Values for Real Time Sensors
 declare SOLAR_PRODUCTION_REAL_TIME_TEMPLATE='{"state": "unknown","attributes": {"state_class": "measurement","unit_of_measurement": "W","device_class": "energy","friendly_name": "Solar Energy Realtime"}}'
 declare GRID_IMPORT_REAL_TIME_TEMPLATE='{"state": "unknown","attributes": {"state_class": "measurement","unit_of_measurement": "W","device_class": "energy","friendly_name": "Grid Used Now"}}'
+declare POWER_LOAD_REAL_TIME_TEMPLATE='{"state": "unknown","attributes": {"state_class": "measurement","unit_of_measurement": "W","device_class": "energy","friendly_name": "House Consumption Now"}}'
 declare BATTERY_USE_REAL_TIME_TEMPLATE='{"state": "unknown","attributes": {"state_class": "measurement","unit_of_measurement": "W","device_class": "energy","friendly_name": "Battery Power Flow Now"}}'
