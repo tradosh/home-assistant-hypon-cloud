@@ -43,4 +43,4 @@ The following sensors are available once the addon is installed:
 ### Real Time Sensors
 - `sensor.solar_energy_now` - The amount of solar energy generated in real time
 - `sensor.grid_import_now` - The amount of energy imported from the grid in real time
-- `sensor.solar_used_now` - The amount of solar energy used in real time
+- `sensor.battery_power_flow_now` - Battery power flow in real time from Hypon monitor data (`power_bat` or `w_cha`)

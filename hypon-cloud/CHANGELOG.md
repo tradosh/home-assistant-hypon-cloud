@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.2
+- Fixed `sensor.battery_power_flow_now` realtime mapping to use battery flow fields from the Hypon monitor API (`power_bat` with `w_cha` fallback)
+
 ## 1.1.1
 - Updating login process to include oem field based on hyponcloud changes
 - 
