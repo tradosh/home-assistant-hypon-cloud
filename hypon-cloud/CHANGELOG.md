@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.3
+- Added `sensor.battery_charge_now` realtime mapping from the Hypon monitor API battery state-of-charge field (`soc`)
+
 ## 1.1.2
 - Fixed `sensor.battery_power_flow_now` realtime mapping to use battery flow fields from the Hypon monitor API (`power_bat` with `w_cha` fallback)
 

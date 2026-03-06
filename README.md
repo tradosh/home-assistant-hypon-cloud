@@ -45,3 +45,4 @@ The following sensors are available once the addon is installed:
 - `sensor.grid_import_now` - The amount of energy imported from the grid in real time
 - `sensor.power_load_now` - House consumption in real time from Hypon monitor data (`power_load`)
 - `sensor.battery_power_flow_now` - Battery power flow in real time from Hypon monitor data (`power_bat` or `w_cha`)
+- `sensor.battery_charge_now` - Battery state of charge in real time from Hypon monitor data (`soc`)
