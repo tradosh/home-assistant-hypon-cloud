@@ -77,9 +77,9 @@ How to use from Home Assistant:
 
 - `Slot Number` - Choose which slot (`1` to `4`) you are editing.
 - `Enable Disable Slot` - `set` to create/update slot, `disable` to disable selected slot.
-- `Battery Slot Mode - Charge/Discharge` - Charge or discharge for the selected slot.
-- `Battery Slot Start Time` / `Battery Slot End Time` - Time window for the selected slot.
-- `Battery Slot Power` - Power value for the selected slot.
-- Day switches: `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday` - tick on/off to control which days the selected slot runs.
+- `Slot Mode - Charge/Discharge` - Charge or discharge for the selected slot.
+- `Slot Start Time` / `Slot End Time` - Time window for the selected slot.
+- `Slot Power` - Power value for the selected slot.
+- Day switches: `Slot Day Monday`, `Slot Day Tuesday`, `Slot Day Wednesday`, `Slot Day Thursday`, `Slot Day Friday`, `Slot Day Saturday`, `Slot Day Sunday` - tick on/off to control which days the selected slot runs.
 - `Apply Selected Slot Settings` - Send current selected-slot settings to Hypon when `mqtt_apply_on_change` is `false`.
 - `Disable Selected Slot` - Sends `disableTimeMode` for the selected slot immediately.

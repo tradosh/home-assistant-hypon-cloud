@@ -70,6 +70,11 @@ mqtt_publish() {
   fi
 }
 
+mqtt_unpublish() {
+  local topic=${1}
+  mqtt_publish "$topic" "" true
+}
+
 mqtt_discovery_topic() {
   local component=${1}
   local objectId=${2}
@@ -206,7 +211,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_mode)" "$(jq -nc \
-    --arg name "Battery Slot Mode - Charge/Discharge" \
+    --arg name "Slot Mode - Charge/Discharge" \
     --arg uniq "hypon_${inverterSn}_timemode_mode" \
     --arg stat "$(mqtt_state_topic mode)" \
     --arg cmd "$cmdTopic" \
@@ -226,7 +231,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic text hypon_${inverterSn}_timemode_start)" "$(jq -nc \
-    --arg name "Battery Slot Start Time" \
+    --arg name "Slot Start Time" \
     --arg uniq "hypon_${inverterSn}_timemode_start" \
     --arg stat "$(mqtt_state_topic start)" \
     --arg cmd "$cmdTopic" \
@@ -246,7 +251,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic text hypon_${inverterSn}_timemode_end)" "$(jq -nc \
-    --arg name "Battery Slot End Time" \
+    --arg name "Slot End Time" \
     --arg uniq "hypon_${inverterSn}_timemode_end" \
     --arg stat "$(mqtt_state_topic end)" \
     --arg cmd "$cmdTopic" \
@@ -266,7 +271,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic number hypon_${inverterSn}_timemode_power)" "$(jq -nc \
-    --arg name "Battery Slot Power" \
+    --arg name "Slot Power" \
     --arg uniq "hypon_${inverterSn}_timemode_power" \
     --arg stat "$(mqtt_state_topic power)" \
     --arg cmd "$cmdTopic" \
@@ -289,7 +294,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day1)" "$(jq -nc \
-    --arg name "Monday" \
+    --arg name "Slot Day Monday" \
     --arg uniq "hypon_${inverterSn}_timemode_day1" \
     --arg stat "$(mqtt_state_topic day1)" \
     --arg cmd "$cmdTopic" \
@@ -312,7 +317,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day2)" "$(jq -nc \
-    --arg name "Tuesday" \
+    --arg name "Slot Day Tuesday" \
     --arg uniq "hypon_${inverterSn}_timemode_day2" \
     --arg stat "$(mqtt_state_topic day2)" \
     --arg cmd "$cmdTopic" \
@@ -335,7 +340,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day3)" "$(jq -nc \
-    --arg name "Wednesday" \
+    --arg name "Slot Day Wednesday" \
     --arg uniq "hypon_${inverterSn}_timemode_day3" \
     --arg stat "$(mqtt_state_topic day3)" \
     --arg cmd "$cmdTopic" \
@@ -358,7 +363,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day4)" "$(jq -nc \
-    --arg name "Thursday" \
+    --arg name "Slot Day Thursday" \
     --arg uniq "hypon_${inverterSn}_timemode_day4" \
     --arg stat "$(mqtt_state_topic day4)" \
     --arg cmd "$cmdTopic" \
@@ -381,7 +386,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day5)" "$(jq -nc \
-    --arg name "Friday" \
+    --arg name "Slot Day Friday" \
     --arg uniq "hypon_${inverterSn}_timemode_day5" \
     --arg stat "$(mqtt_state_topic day5)" \
     --arg cmd "$cmdTopic" \
@@ -404,7 +409,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day6)" "$(jq -nc \
-    --arg name "Saturday" \
+    --arg name "Slot Day Saturday" \
     --arg uniq "hypon_${inverterSn}_timemode_day6" \
     --arg stat "$(mqtt_state_topic day6)" \
     --arg cmd "$cmdTopic" \
@@ -427,7 +432,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day7)" "$(jq -nc \
-    --arg name "Sunday" \
+    --arg name "Slot Day Sunday" \
     --arg uniq "hypon_${inverterSn}_timemode_day7" \
     --arg stat "$(mqtt_state_topic day7)" \
     --arg cmd "$cmdTopic" \
@@ -482,6 +487,15 @@ mqtt_publish_discovery() {
       pl_not_avail: "offline",
       dev: $dev
     }')" true
+}
+
+mqtt_cleanup_legacy_discovery() {
+  local inverterSn
+
+  inverterSn=$(bashio::config 'inverter_sn')
+
+  # Remove old slot-number entity if it was discovered as a number (slider).
+  mqtt_unpublish "$(mqtt_discovery_topic number hypon_${inverterSn}_timemode_slot)"
 }
 
 mqtt_publish_state() {
@@ -740,6 +754,7 @@ startMqttControlLoop() {
   commandTopic=$(mqtt_command_topic)
 
   mqtt_init_state
+  mqtt_cleanup_legacy_discovery
   mqtt_publish_discovery
   mqtt_publish_state
   mqtt_publish "$(mqtt_status_topic)" "online" true
