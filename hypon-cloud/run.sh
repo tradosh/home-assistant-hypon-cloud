@@ -38,6 +38,7 @@ loadSensorData() {
     else
       bashio::log.error "Data Retrieval Error - updating auth token"
       authToken=$(loginHypon)
+      applyTimeModeConfig "$authToken"
     fi
   	sleep "$(bashio::config 'refresh_time')"
   done
@@ -45,4 +46,5 @@ loadSensorData() {
 
 bashio::log.info "Loading Authentication Token"
 authToken=$(loginHypon)
+applyTimeModeConfig "$authToken"
 loadSensorData "$authToken"

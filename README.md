@@ -46,3 +46,20 @@ The following sensors are available once the addon is installed:
 - `sensor.power_load_now` - House consumption in real time from Hypon monitor data (`power_load`)
 - `sensor.battery_power_flow_now` - Battery power flow in real time from Hypon monitor data (`power_bat` or `w_cha`)
 - `sensor.battery_charge_now` - Battery state of charge in real time from Hypon monitor data (`soc`)
+
+## Optional Inverter TimeMode Control
+
+The add-on now supports optional API writes to apply Hypon inverter `TimeMode` settings (charge/discharge schedule and power).
+
+Set these add-on options to enable it:
+
+- `enable_time_mode_config` - Set `true` to apply config on startup and token refresh.
+- `inverter_sn` - Inverter serial number (`invsn` in the API payload).
+- `config_put_endpoint` - API path for config write. Default is `/inverter/config`.
+- `config_put_method` - HTTP method for config write. Default is `PUT`.
+- `timemode` - `0` = charge, `1` = discharge.
+- `timepower` - Charge/discharge power.
+- `timestarttime`, `timeendtime` - Time window in `HH:MM` format.
+- `time_enable`, `old_time_enable`, `timen`, `timeweekday1..7` - Additional fields required by the Hypon payload.
+
+If your web UI uses a different write endpoint, update `config_put_endpoint` to match the route from browser dev tools.
