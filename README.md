@@ -47,22 +47,38 @@ The following sensors are available once the addon is installed:
 - `sensor.battery_power_flow_now` - Battery power flow in real time from Hypon monitor data (`power_bat` or `w_cha`)
 - `sensor.battery_charge_now` - Battery state of charge in real time from Hypon monitor data (`soc`)
 
-## Optional Inverter TimeMode Control
+## MQTT Device Controls (Option 2)
 
-The add-on now supports optional API writes to apply Hypon inverter `TimeMode` settings (charge/discharge schedule and power).
+This add-on exposes TimeMode controls as MQTT discovery entities so you configure schedules from Home Assistant devices/entities (not add-on options).
+Each slot (`1` to `4`) stores its own independent `mode`, `power`, `start`, and `end` values.
 
-Set these add-on options to enable it:
+Required add-on options:
 
-- `enable_time_mode_config` - Set `true` to apply config on startup and token refresh.
-- `inverter_sn` - Inverter serial number (`invsn` in the API payload).
-- `config_put_endpoint` - API path for config write. Default is `/inverter/config`.
-- `config_put_method` - HTTP method for config write. Default is `PUT`.
-- `time_mode_action` - Action to apply. Use `set` to create/update a schedule, or `disable` to disable a specific schedule slot.
-- `timemode` - `0` = charge, `1` = discharge.
-- `timen` - Time schedule slot index from the UI (`1` to `4`).
-- `timepower` - Charge/discharge power.
-- `timestarttime`, `timeendtime` - Time window in `HH:MM` format.
-- `time_enable`, `old_time_enable`, `timen`, `timeweekday1..7` - Additional fields required by the Hypon payload.
+- `enable_mqtt_controls` - Enable MQTT discovery and command listener.
+- `inverter_sn` - Inverter serial number used in Hypon API payloads.
+- `config_put_endpoint` - API path for config writes. Default `/inverter/config`.
+- `config_put_method` - API method for config writes. Default `PUT`.
+- `mqtt_host` - MQTT broker host (for Home Assistant Mosquitto add-on, use `core-mosquitto`).
+- `mqtt_port` - MQTT broker port, default `1883`.
+- `mqtt_username` / `mqtt_password` - Optional MQTT auth.
+- `mqtt_discovery_prefix` - Discovery prefix, default `homeassistant`.
+- `mqtt_base_topic` - Base topic for state/command topics, default `hypon_cloud`.
+- `mqtt_apply_on_change` - If `true`, each control change is pushed immediately to Hypon API. If `false`, use the `Apply Selected Slot Settings` button entity.
 
-If your web UI uses a different write endpoint, update `config_put_endpoint` to match the route from browser dev tools.
-When `time_mode_action: disable`, the add-on sends `configname: disableTimeMode` with `invsn` and the selected `timen` slot.
+Quick setup:
+
+1. Install and configure the Mosquitto broker add-on in Home Assistant.
+2. Confirm MQTT integration is enabled in Home Assistant.
+3. Set add-on options: `inverter_sn`, `enable_mqtt_controls: true`, and MQTT broker credentials/host.
+4. Restart this add-on.
+5. In Home Assistant, open Devices and find the Hypon inverter device created via MQTT discovery.
+
+How to use from Home Assistant:
+
+- `Selected Battery Slot` - Choose which slot (`1` to `4`) you are editing.
+- `Battery Slot Mode` - Charge or discharge for the selected slot.
+- `Battery Slot Power` - Power value for the selected slot.
+- `Battery Slot Start Time` / `Battery Slot End Time` - Time window for the selected slot.
+- `Battery Slot Action` - `set` to create/update slot, `disable` to disable selected slot.
+- `Apply Selected Slot Settings` - Send current selected-slot settings to Hypon when `mqtt_apply_on_change` is `false`.
+- `Disable Selected Slot` - Sends `disableTimeMode` for the selected slot immediately.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.1
+- Removed slot/time-mode schedule fields from add-on options; schedule configuration is now MQTT-device driven only
+- Removed startup apply path based on add-on slot settings to avoid split configuration sources
+- Updated documentation with MQTT-first setup steps and clearer control descriptions
+
+## 1.3.0
+- Added MQTT discovery-based TimeMode controls so settings can be managed as Home Assistant device entities
+- Added MQTT command listener to apply `TimeMode` and `disableTimeMode` payloads from HA UI controls
+- Added add-on options for MQTT broker/discovery configuration and apply-on-change behavior
+- Updated MQTT controls so each slot (1-4) keeps independent mode/power/start/end values and improved entity naming/description clarity
+
 ## 1.2.0
 - Added optional inverter `TimeMode` API write support for battery charge/discharge schedule and power
 - Added add-on configuration options for `timemode`, `timepower`, schedule window, weekdays, inverter serial, and configurable config write endpoint/method
