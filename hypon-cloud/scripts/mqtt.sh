@@ -183,20 +183,19 @@ mqtt_init_state() {
   end="05:30"
 
   jq -nc \
-    --arg action "set" \
     --arg mode "$mode" \
     --argjson slot "$timen" \
     --argjson power "$power" \
     --arg start "$start" \
     --arg end "$end" \
     '{
-      action: ($action // "set"),
+      action: "set",
       slot: $slot,
       slots: {
-        "1": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
-        "2": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
-        "3": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
-        "4": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}}
+        "1": {action: "set", mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
+        "2": {action: "set", mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
+        "3": {action: "set", mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
+        "4": {action: "set", mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}}
       }
     }' > "$MQTT_STATE_FILE"
 }
@@ -546,6 +545,78 @@ mqtt_publish_discovery() {
       dev: $dev
     }')" true
 
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot1_enabled)" "$(jq -nc \
+    --arg name "10.1 Slot 1 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot1_enabled" \
+    --arg stat "$(mqtt_state_topic slot1_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot2_enabled)" "$(jq -nc \
+    --arg name "10.2 Slot 2 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot2_enabled" \
+    --arg stat "$(mqtt_state_topic slot2_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot3_enabled)" "$(jq -nc \
+    --arg name "10.3 Slot 3 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot3_enabled" \
+    --arg stat "$(mqtt_state_topic slot3_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot4_enabled)" "$(jq -nc \
+    --arg name "10.4 Slot 4 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot4_enabled" \
+    --arg stat "$(mqtt_state_topic slot4_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
   mqtt_publish "$(mqtt_discovery_topic button hypon_${inverterSn}_timemode_apply)" "$(jq -nc \
     --arg name "8 Apply Selected Slot Settings" \
     --arg uniq "hypon_${inverterSn}_timemode_apply" \
@@ -605,6 +676,10 @@ mqtt_publish_state() {
   local day5
   local day6
   local day7
+  local slot1_enabled
+  local slot2_enabled
+  local slot3_enabled
+  local slot4_enabled
 
   state=$(cat "$MQTT_STATE_FILE")
   slot=$(echo "$state" | jq -r '.slot // 1')
@@ -620,6 +695,10 @@ mqtt_publish_state() {
   day5=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day5 // 0) == 1 then "ON" else "OFF" end')
   day6=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day6 // 0) == 1 then "ON" else "OFF" end')
   day7=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day7 // 0) == 1 then "ON" else "OFF" end')
+  slot1_enabled=$(echo "$state" | jq -r 'if ((.slots["1"].action // "set") == "disable") then "OFF" else "ON" end')
+  slot2_enabled=$(echo "$state" | jq -r 'if ((.slots["2"].action // "set") == "disable") then "OFF" else "ON" end')
+  slot3_enabled=$(echo "$state" | jq -r 'if ((.slots["3"].action // "set") == "disable") then "OFF" else "ON" end')
+  slot4_enabled=$(echo "$state" | jq -r 'if ((.slots["4"].action // "set") == "disable") then "OFF" else "ON" end')
 
   mqtt_publish "$(mqtt_state_topic action)" "$action" true
   mqtt_publish "$(mqtt_state_topic slot)" "$slot" true
@@ -634,6 +713,10 @@ mqtt_publish_state() {
   mqtt_publish "$(mqtt_state_topic day5)" "$day5" true
   mqtt_publish "$(mqtt_state_topic day6)" "$day6" true
   mqtt_publish "$(mqtt_state_topic day7)" "$day7" true
+  mqtt_publish "$(mqtt_state_topic slot1_enabled)" "$slot1_enabled" true
+  mqtt_publish "$(mqtt_state_topic slot2_enabled)" "$slot2_enabled" true
+  mqtt_publish "$(mqtt_state_topic slot3_enabled)" "$slot3_enabled" true
+  mqtt_publish "$(mqtt_state_topic slot4_enabled)" "$slot4_enabled" true
 }
 
 mqtt_build_payload_from_state() {
@@ -823,7 +906,7 @@ mqtt_sync_slot_from_hypon() {
     --argjson day6 "$day6" \
     --argjson day7 "$day7" \
     '(.slots //= {})
-    | (.slots[$slot] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})
+    | (.slots[$slot] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})
     | .slots[$slot].mode = $mode
     | .slots[$slot].action = $action
     | .slots[$slot].power = $power
@@ -904,32 +987,32 @@ mqtt_update_state_field() {
     action)
       if [ "$value" = "set" ] || [ "$value" = "disable" ]; then
         jq --arg value "$value" '(.slots //= {})
-          | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})
+          | (.slots[.slot|tostring] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})
           | .slots[.slot|tostring].action=$value
           | .action=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       fi
       ;;
     mode)
       if [ "$value" = "charge" ] || [ "$value" = "discharge" ]; then
-        jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].mode=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+        jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].mode=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       fi
       ;;
     slot)
       value=$(echo "$value" | jq -Rr 'try (tonumber) catch 1 | if . < 1 then 1 elif . > 4 then 4 else . end')
       jq --argjson value "$value" '.slot=$value
         | (.slots //= {})
-        | (.slots[$value|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})
+        | (.slots[$value|tostring] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})
         | .action = (.slots[$value|tostring].action // .action // "set")' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
     power)
       value=$(echo "$value" | jq -Rr 'try (tonumber) catch 100 | if . < 0 then 0 elif . > 10000 then 10000 else . end')
-      jq --argjson value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].power=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --argjson value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].power=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
     start)
-      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].start=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].start=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
     end)
-      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].end=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].end=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
     day1|day2|day3|day4|day5|day6|day7)
       if [ "$value" = "ON" ] || [ "$value" = "on" ] || [ "$value" = "1" ] || [ "$value" = "true" ] || [ "$value" = "True" ]; then
@@ -937,7 +1020,7 @@ mqtt_update_state_field() {
       else
         value=0
       fi
-      jq --arg field "$field" --argjson value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | (.slots[.slot|tostring].weekdays //= {day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}) | .slots[.slot|tostring].weekdays[$field]=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --arg field "$field" --argjson value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {action:"set",mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | (.slots[.slot|tostring].weekdays //= {day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}) | .slots[.slot|tostring].weekdays[$field]=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
   esac
 }

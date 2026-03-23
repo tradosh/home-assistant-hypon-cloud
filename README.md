@@ -91,6 +91,7 @@ Apply progress feedback in Home Assistant:
 - `0 Apply In Progress` (binary sensor) - `ON` while an update is being applied.
 - `0 Apply Status` (sensor) - shows progress text such as sending request, waiting for response, confirmed, or timed out.
 - `0 Sync Status` (sensor) - shows periodic sync progress/results for `TimeMode1..4` endpoint polling.
+- `Slot 1 Enabled`, `Slot 2 Enabled`, `Slot 3 Enabled`, `Slot 4 Enabled` (binary sensors) - read-only enabled state per slot from MQTT state (`ON` when `time_enable=1`, `OFF` when disabled).
 
 After sending the update, the add-on waits for `HTTP 200` from:
 

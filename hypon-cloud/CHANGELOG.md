@@ -4,6 +4,7 @@
 - Changed default MQTT inverter sync interval to `7200` seconds (120 minutes)
 - Added MQTT `0 Sync Status` sensor updates during periodic `TimeMode1..4` polling
 - Fixed slot action state so `Enable Disable Slot` reflects the selected slot's actual `time_enable` status
+- Added per-slot MQTT binary sensors: `Slot 1 Enabled` to `Slot 4 Enabled`
 
 ## 1.3.3
 - Added periodic inverter slot sync from `/inverter/<inverter_sn>/config/TimeMode1..4` into MQTT state/entities
