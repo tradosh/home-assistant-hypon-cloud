@@ -171,7 +171,7 @@ mqtt_publish_discovery() {
   deviceJson=$(mqtt_device_json)
 
   mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_slot)" "$(jq -nc \
-    --arg name "Slot Number" \
+    --arg name "1 Slot Number" \
     --arg uniq "hypon_${inverterSn}_timemode_slot" \
     --arg stat "$(mqtt_state_topic slot)" \
     --arg cmd "$cmdTopic" \
@@ -191,7 +191,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_action)" "$(jq -nc \
-    --arg name "Enable Disable Slot" \
+    --arg name "2 Enable Disable Slot" \
     --arg uniq "hypon_${inverterSn}_timemode_action" \
     --arg stat "$(mqtt_state_topic action)" \
     --arg cmd "$cmdTopic" \
@@ -211,7 +211,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_mode)" "$(jq -nc \
-    --arg name "Slot Mode - Charge/Discharge" \
+    --arg name "3 Slot Mode - Charge/Discharge" \
     --arg uniq "hypon_${inverterSn}_timemode_mode" \
     --arg stat "$(mqtt_state_topic mode)" \
     --arg cmd "$cmdTopic" \
@@ -231,7 +231,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic text hypon_${inverterSn}_timemode_start)" "$(jq -nc \
-    --arg name "Slot Start Time" \
+    --arg name "4 Slot Start Time" \
     --arg uniq "hypon_${inverterSn}_timemode_start" \
     --arg stat "$(mqtt_state_topic start)" \
     --arg cmd "$cmdTopic" \
@@ -251,7 +251,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic text hypon_${inverterSn}_timemode_end)" "$(jq -nc \
-    --arg name "Slot End Time" \
+    --arg name "5 Slot End Time" \
     --arg uniq "hypon_${inverterSn}_timemode_end" \
     --arg stat "$(mqtt_state_topic end)" \
     --arg cmd "$cmdTopic" \
@@ -271,7 +271,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic number hypon_${inverterSn}_timemode_power)" "$(jq -nc \
-    --arg name "Slot Power" \
+    --arg name "6 Slot Power" \
     --arg uniq "hypon_${inverterSn}_timemode_power" \
     --arg stat "$(mqtt_state_topic power)" \
     --arg cmd "$cmdTopic" \
@@ -294,7 +294,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day1)" "$(jq -nc \
-    --arg name "Slot Day Monday" \
+    --arg name "7.1 Slot Day Monday" \
     --arg uniq "hypon_${inverterSn}_timemode_day1" \
     --arg stat "$(mqtt_state_topic day1)" \
     --arg cmd "$cmdTopic" \
@@ -317,7 +317,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day2)" "$(jq -nc \
-    --arg name "Slot Day Tuesday" \
+    --arg name "7.2 Slot Day Tuesday" \
     --arg uniq "hypon_${inverterSn}_timemode_day2" \
     --arg stat "$(mqtt_state_topic day2)" \
     --arg cmd "$cmdTopic" \
@@ -340,7 +340,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day3)" "$(jq -nc \
-    --arg name "Slot Day Wednesday" \
+    --arg name "7.3 Slot Day Wednesday" \
     --arg uniq "hypon_${inverterSn}_timemode_day3" \
     --arg stat "$(mqtt_state_topic day3)" \
     --arg cmd "$cmdTopic" \
@@ -363,7 +363,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day4)" "$(jq -nc \
-    --arg name "Slot Day Thursday" \
+    --arg name "7.4 Slot Day Thursday" \
     --arg uniq "hypon_${inverterSn}_timemode_day4" \
     --arg stat "$(mqtt_state_topic day4)" \
     --arg cmd "$cmdTopic" \
@@ -386,7 +386,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day5)" "$(jq -nc \
-    --arg name "Slot Day Friday" \
+    --arg name "7.5 Slot Day Friday" \
     --arg uniq "hypon_${inverterSn}_timemode_day5" \
     --arg stat "$(mqtt_state_topic day5)" \
     --arg cmd "$cmdTopic" \
@@ -409,7 +409,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day6)" "$(jq -nc \
-    --arg name "Slot Day Saturday" \
+    --arg name "7.6 Slot Day Saturday" \
     --arg uniq "hypon_${inverterSn}_timemode_day6" \
     --arg stat "$(mqtt_state_topic day6)" \
     --arg cmd "$cmdTopic" \
@@ -432,7 +432,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day7)" "$(jq -nc \
-    --arg name "Slot Day Sunday" \
+    --arg name "7.7 Slot Day Sunday" \
     --arg uniq "hypon_${inverterSn}_timemode_day7" \
     --arg stat "$(mqtt_state_topic day7)" \
     --arg cmd "$cmdTopic" \
@@ -455,7 +455,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic button hypon_${inverterSn}_timemode_apply)" "$(jq -nc \
-    --arg name "Apply Selected Slot Settings" \
+    --arg name "8 Apply Selected Slot Settings" \
     --arg uniq "hypon_${inverterSn}_timemode_apply" \
     --arg cmd "$cmdTopic" \
     --arg avty "$statusTopic" \
@@ -472,7 +472,7 @@ mqtt_publish_discovery() {
     }')" true
 
   mqtt_publish "$(mqtt_discovery_topic button hypon_${inverterSn}_timemode_disable_slot)" "$(jq -nc \
-    --arg name "Disable Selected Slot" \
+    --arg name "9 Disable Selected Slot" \
     --arg uniq "hypon_${inverterSn}_timemode_disable_slot" \
     --arg cmd "$cmdTopic" \
     --arg avty "$statusTopic" \
