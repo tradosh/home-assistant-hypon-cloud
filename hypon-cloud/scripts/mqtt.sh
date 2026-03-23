@@ -146,10 +146,10 @@ mqtt_init_state() {
       action: ($action // "set"),
       slot: $slot,
       slots: {
-        "1": {mode: $mode, power: $power, start: $start, end: $end},
-        "2": {mode: $mode, power: $power, start: $start, end: $end},
-        "3": {mode: $mode, power: $power, start: $start, end: $end},
-        "4": {mode: $mode, power: $power, start: $start, end: $end}
+        "1": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
+        "2": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
+        "3": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}},
+        "4": {mode: $mode, power: $power, start: $start, end: $end, weekdays: {day1: 1, day2: 1, day3: 1, day4: 1, day5: 1, day6: 0, day7: 0}}
       }
     }' > "$MQTT_STATE_FILE"
 }
@@ -165,8 +165,48 @@ mqtt_publish_discovery() {
   statusTopic=$(mqtt_status_topic)
   deviceJson=$(mqtt_device_json)
 
+  mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_slot)" "$(jq -nc \
+    --arg name "Slot Number" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot" \
+    --arg stat "$(mqtt_state_topic slot)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"slot\",\"value\":\"{{ value }}\"}",
+      options: ["1", "2", "3", "4"],
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_action)" "$(jq -nc \
+    --arg name "Enable Disable Slot" \
+    --arg uniq "hypon_${inverterSn}_timemode_action" \
+    --arg stat "$(mqtt_state_topic action)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"action\",\"value\":\"{{ value }}\"}",
+      options: ["set", "disable"],
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
   mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_mode)" "$(jq -nc \
-    --arg name "Battery Slot Mode" \
+    --arg name "Battery Slot Mode - Charge/Discharge" \
     --arg uniq "hypon_${inverterSn}_timemode_mode" \
     --arg stat "$(mqtt_state_topic mode)" \
     --arg cmd "$cmdTopic" \
@@ -179,52 +219,6 @@ mqtt_publish_discovery() {
       cmd_t: $cmd,
       cmd_tpl: "{\"field\":\"mode\",\"value\":\"{{ value }}\"}",
       options: ["charge", "discharge"],
-      avty_t: $avty,
-      pl_avail: "online",
-      pl_not_avail: "offline",
-      dev: $dev
-    }')" true
-
-  mqtt_publish "$(mqtt_discovery_topic number hypon_${inverterSn}_timemode_power)" "$(jq -nc \
-    --arg name "Battery Slot Power" \
-    --arg uniq "hypon_${inverterSn}_timemode_power" \
-    --arg stat "$(mqtt_state_topic power)" \
-    --arg cmd "$cmdTopic" \
-    --arg avty "$statusTopic" \
-    --argjson dev "$deviceJson" \
-    '{
-      name: $name,
-      uniq_id: $uniq,
-      stat_t: $stat,
-      cmd_t: $cmd,
-      cmd_tpl: "{\"field\":\"power\",\"value\":{{ value }}}",
-      min: 0,
-      max: 10000,
-      step: 1,
-      mode: "box",
-      avty_t: $avty,
-      pl_avail: "online",
-      pl_not_avail: "offline",
-      dev: $dev
-    }')" true
-
-  mqtt_publish "$(mqtt_discovery_topic number hypon_${inverterSn}_timemode_slot)" "$(jq -nc \
-    --arg name "Selected Battery Slot" \
-    --arg uniq "hypon_${inverterSn}_timemode_slot" \
-    --arg stat "$(mqtt_state_topic slot)" \
-    --arg cmd "$cmdTopic" \
-    --arg avty "$statusTopic" \
-    --argjson dev "$deviceJson" \
-    '{
-      name: $name,
-      uniq_id: $uniq,
-      stat_t: $stat,
-      cmd_t: $cmd,
-      cmd_tpl: "{\"field\":\"slot\",\"value\":{{ value }}}",
-      min: 1,
-      max: 4,
-      step: 1,
-      mode: "slider",
       avty_t: $avty,
       pl_avail: "online",
       pl_not_avail: "offline",
@@ -271,10 +265,10 @@ mqtt_publish_discovery() {
       dev: $dev
     }')" true
 
-  mqtt_publish "$(mqtt_discovery_topic select hypon_${inverterSn}_timemode_action)" "$(jq -nc \
-    --arg name "Battery Slot Action" \
-    --arg uniq "hypon_${inverterSn}_timemode_action" \
-    --arg stat "$(mqtt_state_topic action)" \
+  mqtt_publish "$(mqtt_discovery_topic number hypon_${inverterSn}_timemode_power)" "$(jq -nc \
+    --arg name "Battery Slot Power" \
+    --arg uniq "hypon_${inverterSn}_timemode_power" \
+    --arg stat "$(mqtt_state_topic power)" \
     --arg cmd "$cmdTopic" \
     --arg avty "$statusTopic" \
     --argjson dev "$deviceJson" \
@@ -283,8 +277,172 @@ mqtt_publish_discovery() {
       uniq_id: $uniq,
       stat_t: $stat,
       cmd_t: $cmd,
-      cmd_tpl: "{\"field\":\"action\",\"value\":\"{{ value }}\"}",
-      options: ["set", "disable"],
+      cmd_tpl: "{\"field\":\"power\",\"value\":{{ value }}}",
+      min: 0,
+      max: 10000,
+      step: 1,
+      mode: "box",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day1)" "$(jq -nc \
+    --arg name "Monday" \
+    --arg uniq "hypon_${inverterSn}_timemode_day1" \
+    --arg stat "$(mqtt_state_topic day1)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"day1\",\"value\":\"{{ value }}\"}",
+      pl_on: "ON",
+      pl_off: "OFF",
+      stat_on: "ON",
+      stat_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day2)" "$(jq -nc \
+    --arg name "Tuesday" \
+    --arg uniq "hypon_${inverterSn}_timemode_day2" \
+    --arg stat "$(mqtt_state_topic day2)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"day2\",\"value\":\"{{ value }}\"}",
+      pl_on: "ON",
+      pl_off: "OFF",
+      stat_on: "ON",
+      stat_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day3)" "$(jq -nc \
+    --arg name "Wednesday" \
+    --arg uniq "hypon_${inverterSn}_timemode_day3" \
+    --arg stat "$(mqtt_state_topic day3)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"day3\",\"value\":\"{{ value }}\"}",
+      pl_on: "ON",
+      pl_off: "OFF",
+      stat_on: "ON",
+      stat_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day4)" "$(jq -nc \
+    --arg name "Thursday" \
+    --arg uniq "hypon_${inverterSn}_timemode_day4" \
+    --arg stat "$(mqtt_state_topic day4)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"day4\",\"value\":\"{{ value }}\"}",
+      pl_on: "ON",
+      pl_off: "OFF",
+      stat_on: "ON",
+      stat_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day5)" "$(jq -nc \
+    --arg name "Friday" \
+    --arg uniq "hypon_${inverterSn}_timemode_day5" \
+    --arg stat "$(mqtt_state_topic day5)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"day5\",\"value\":\"{{ value }}\"}",
+      pl_on: "ON",
+      pl_off: "OFF",
+      stat_on: "ON",
+      stat_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day6)" "$(jq -nc \
+    --arg name "Saturday" \
+    --arg uniq "hypon_${inverterSn}_timemode_day6" \
+    --arg stat "$(mqtt_state_topic day6)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"day6\",\"value\":\"{{ value }}\"}",
+      pl_on: "ON",
+      pl_off: "OFF",
+      stat_on: "ON",
+      stat_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic switch hypon_${inverterSn}_timemode_day7)" "$(jq -nc \
+    --arg name "Sunday" \
+    --arg uniq "hypon_${inverterSn}_timemode_day7" \
+    --arg stat "$(mqtt_state_topic day7)" \
+    --arg cmd "$cmdTopic" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      cmd_t: $cmd,
+      cmd_tpl: "{\"field\":\"day7\",\"value\":\"{{ value }}\"}",
+      pl_on: "ON",
+      pl_off: "OFF",
+      stat_on: "ON",
+      stat_off: "OFF",
       avty_t: $avty,
       pl_avail: "online",
       pl_not_avail: "offline",
@@ -333,6 +491,13 @@ mqtt_publish_state() {
   local power
   local start
   local end
+  local day1
+  local day2
+  local day3
+  local day4
+  local day5
+  local day6
+  local day7
 
   state=$(cat "$MQTT_STATE_FILE")
   slot=$(echo "$state" | jq -r '.slot // 1')
@@ -340,6 +505,13 @@ mqtt_publish_state() {
   power=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].power // 100')
   start=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].start // "03:30"')
   end=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].end // "05:30"')
+  day1=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day1 // 0) == 1 then "ON" else "OFF" end')
+  day2=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day2 // 0) == 1 then "ON" else "OFF" end')
+  day3=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day3 // 0) == 1 then "ON" else "OFF" end')
+  day4=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day4 // 0) == 1 then "ON" else "OFF" end')
+  day5=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day5 // 0) == 1 then "ON" else "OFF" end')
+  day6=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day6 // 0) == 1 then "ON" else "OFF" end')
+  day7=$(echo "$state" | jq -r --arg slot "$slot" 'if (.slots[$slot].weekdays.day7 // 0) == 1 then "ON" else "OFF" end')
 
   mqtt_publish "$(mqtt_state_topic action)" "$(echo "$state" | jq -r '.action')" true
   mqtt_publish "$(mqtt_state_topic slot)" "$slot" true
@@ -347,6 +519,13 @@ mqtt_publish_state() {
   mqtt_publish "$(mqtt_state_topic power)" "$power" true
   mqtt_publish "$(mqtt_state_topic start)" "$start" true
   mqtt_publish "$(mqtt_state_topic end)" "$end" true
+  mqtt_publish "$(mqtt_state_topic day1)" "$day1" true
+  mqtt_publish "$(mqtt_state_topic day2)" "$day2" true
+  mqtt_publish "$(mqtt_state_topic day3)" "$day3" true
+  mqtt_publish "$(mqtt_state_topic day4)" "$day4" true
+  mqtt_publish "$(mqtt_state_topic day5)" "$day5" true
+  mqtt_publish "$(mqtt_state_topic day6)" "$day6" true
+  mqtt_publish "$(mqtt_state_topic day7)" "$day7" true
 }
 
 mqtt_build_payload_from_state() {
@@ -358,6 +537,13 @@ mqtt_build_payload_from_state() {
   local power
   local start
   local end
+  local day1
+  local day2
+  local day3
+  local day4
+  local day5
+  local day6
+  local day7
 
   inverterSn=$(bashio::config 'inverter_sn')
   state=$(cat "$MQTT_STATE_FILE")
@@ -367,6 +553,13 @@ mqtt_build_payload_from_state() {
   power=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].power // 100')
   start=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].start // "03:30"')
   end=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].end // "05:30"')
+  day1=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].weekdays.day1 // 1')
+  day2=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].weekdays.day2 // 1')
+  day3=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].weekdays.day3 // 1')
+  day4=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].weekdays.day4 // 1')
+  day5=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].weekdays.day5 // 1')
+  day6=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].weekdays.day6 // 0')
+  day7=$(echo "$state" | jq -r --arg slot "$slot" '.slots[$slot].weekdays.day7 // 0')
 
   if [ "$action" = "disable" ]; then
     jq -nc --arg invsn "$inverterSn" --arg configname "disableTimeMode" --argjson timen "$slot" '{invsn:$invsn,configname:$configname,timen:$timen}'
@@ -389,13 +582,13 @@ mqtt_build_payload_from_state() {
     --arg timemode "$mode" \
     --arg timen "$slot" \
     --arg timepower "$power" \
-    --arg timeweekday1 "1" \
-    --arg timeweekday2 "1" \
-    --arg timeweekday3 "1" \
-    --arg timeweekday4 "1" \
-    --arg timeweekday5 "1" \
-    --arg timeweekday6 "1" \
-    --arg timeweekday7 "1" \
+    --arg timeweekday1 "$day1" \
+    --arg timeweekday2 "$day2" \
+    --arg timeweekday3 "$day3" \
+    --arg timeweekday4 "$day4" \
+    --arg timeweekday5 "$day5" \
+    --arg timeweekday6 "$day6" \
+    --arg timeweekday7 "$day7" \
     '{
       invsn: $invsn,
       configname: $configname,
@@ -447,22 +640,30 @@ mqtt_update_state_field() {
       ;;
     mode)
       if [ "$value" = "charge" ] || [ "$value" = "discharge" ]; then
-        jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30"}) | .slots[.slot|tostring].mode=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+        jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].mode=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       fi
       ;;
     slot)
       value=$(echo "$value" | jq -Rr 'try (tonumber) catch 1 | if . < 1 then 1 elif . > 4 then 4 else . end')
-      jq --argjson value "$value" '.slot=$value | (.slots //= {}) | (.slots[$value|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30"})' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --argjson value "$value" '.slot=$value | (.slots //= {}) | (.slots[$value|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
     power)
       value=$(echo "$value" | jq -Rr 'try (tonumber) catch 100 | if . < 0 then 0 elif . > 10000 then 10000 else . end')
-      jq --argjson value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30"}) | .slots[.slot|tostring].power=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --argjson value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].power=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
     start)
-      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30"}) | .slots[.slot|tostring].start=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].start=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
     end)
-      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30"}) | .slots[.slot|tostring].end=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      jq --arg value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | .slots[.slot|tostring].end=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+      ;;
+    day1|day2|day3|day4|day5|day6|day7)
+      if [ "$value" = "ON" ] || [ "$value" = "on" ] || [ "$value" = "1" ] || [ "$value" = "true" ] || [ "$value" = "True" ]; then
+        value=1
+      else
+        value=0
+      fi
+      jq --arg field "$field" --argjson value "$value" '(.slots //= {}) | (.slots[.slot|tostring] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}}) | (.slots[.slot|tostring].weekdays //= {day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}) | .slots[.slot|tostring].weekdays[$field]=$value' "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
       ;;
   esac
 }
