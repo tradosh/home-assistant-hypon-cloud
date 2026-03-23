@@ -25,6 +25,7 @@ options:
   inverter_sn: ""
   config_put_endpoint: "/inverter/config"
   config_put_method: "PUT"
+  time_mode_action: "set"
   timemode: 0
   timepower: 100
   timestarttime: "03:30"
@@ -48,13 +49,14 @@ schema:
   inverter_sn: str
   config_put_endpoint: str
   config_put_method: str
+  time_mode_action: str
   timemode: int(0,1)
   timepower: int(0,10000)
   timestarttime: str
   timeendtime: str
   time_enable: int(0,1)
   old_time_enable: int(0,1)
-  timen: int(1,10)
+  timen: int(1,4)
   timeweekday1: int(0,1)
   timeweekday2: int(0,1)
   timeweekday3: int(0,1)

@@ -57,9 +57,12 @@ Set these add-on options to enable it:
 - `inverter_sn` - Inverter serial number (`invsn` in the API payload).
 - `config_put_endpoint` - API path for config write. Default is `/inverter/config`.
 - `config_put_method` - HTTP method for config write. Default is `PUT`.
+- `time_mode_action` - Action to apply. Use `set` to create/update a schedule, or `disable` to disable a specific schedule slot.
 - `timemode` - `0` = charge, `1` = discharge.
+- `timen` - Time schedule slot index from the UI (`1` to `4`).
 - `timepower` - Charge/discharge power.
 - `timestarttime`, `timeendtime` - Time window in `HH:MM` format.
 - `time_enable`, `old_time_enable`, `timen`, `timeweekday1..7` - Additional fields required by the Hypon payload.
 
 If your web UI uses a different write endpoint, update `config_put_endpoint` to match the route from browser dev tools.
+When `time_mode_action: disable`, the add-on sends `configname: disableTimeMode` with `invsn` and the selected `timen` slot.

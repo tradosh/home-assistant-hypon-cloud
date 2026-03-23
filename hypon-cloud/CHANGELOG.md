@@ -5,6 +5,7 @@
 - Added add-on configuration options for `timemode`, `timepower`, schedule window, weekdays, inverter serial, and configurable config write endpoint/method
 - Updated default config write route to `/inverter/config` with `PUT` based on observed Hypon web app API request
 - Fixed startup jq parse crash when TimeMode numeric options are missing/invalid by coercing values safely
+- Added `time_mode_action` with `disable` support to send `configname: disableTimeMode` for a selected schedule slot (`timen` 1-4)
 
 ## 1.1.3
 - Added `sensor.battery_charge_now` realtime mapping from the Hypon monitor API battery state-of-charge field (`soc`)
