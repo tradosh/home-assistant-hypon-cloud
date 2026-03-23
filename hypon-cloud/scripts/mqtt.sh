@@ -44,6 +44,21 @@ mqtt_get_base_topic() {
   echo "$prefix"
 }
 
+mqtt_sync_enabled() {
+  local enabled
+  enabled=$(bashio::config 'mqtt_sync_from_hypon')
+  [ "$enabled" = "true" ]
+}
+
+mqtt_get_sync_interval() {
+  local interval
+  interval=$(bashio::config 'mqtt_sync_interval')
+  if [ -z "$interval" ] || [ "$interval" = "null" ]; then
+    interval=7200
+  fi
+  echo "$interval"
+}
+
 mqtt_publish() {
   local topic=${1}
   local payload=${2}
@@ -110,6 +125,33 @@ mqtt_status_topic() {
   baseTopic=$(mqtt_get_base_topic)
   inverterSn=$(bashio::config 'inverter_sn')
   echo "$baseTopic/$inverterSn/timemode/status"
+}
+
+mqtt_apply_progress_topic() {
+  local baseTopic
+  local inverterSn
+
+  baseTopic=$(mqtt_get_base_topic)
+  inverterSn=$(bashio::config 'inverter_sn')
+  echo "$baseTopic/$inverterSn/timemode/apply/in_progress"
+}
+
+mqtt_apply_status_topic() {
+  local baseTopic
+  local inverterSn
+
+  baseTopic=$(mqtt_get_base_topic)
+  inverterSn=$(bashio::config 'inverter_sn')
+  echo "$baseTopic/$inverterSn/timemode/apply/status"
+}
+
+mqtt_sync_status_topic() {
+  local baseTopic
+  local inverterSn
+
+  baseTopic=$(mqtt_get_base_topic)
+  inverterSn=$(bashio::config 'inverter_sn')
+  echo "$baseTopic/$inverterSn/timemode/sync/status"
 }
 
 mqtt_device_json() {
@@ -184,6 +226,56 @@ mqtt_publish_discovery() {
       cmd_t: $cmd,
       cmd_tpl: "{\"field\":\"slot\",\"value\":\"{{ value }}\"}",
       options: ["1", "2", "3", "4"],
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_apply_in_progress)" "$(jq -nc \
+    --arg name "0 Apply In Progress" \
+    --arg uniq "hypon_${inverterSn}_timemode_apply_in_progress" \
+    --arg stat "$(mqtt_apply_progress_topic)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic sensor hypon_${inverterSn}_timemode_apply_status)" "$(jq -nc \
+    --arg name "0 Apply Status" \
+    --arg uniq "hypon_${inverterSn}_timemode_apply_status" \
+    --arg stat "$(mqtt_apply_status_topic)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic sensor hypon_${inverterSn}_timemode_sync_status)" "$(jq -nc \
+    --arg name "0 Sync Status" \
+    --arg uniq "hypon_${inverterSn}_timemode_sync_status" \
+    --arg stat "$(mqtt_sync_status_topic)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
       avty_t: $avty,
       pl_avail: "online",
       pl_not_avail: "offline",
@@ -626,15 +718,174 @@ mqtt_build_payload_from_state() {
 mqtt_apply_state() {
   local authToken
   local payload
+  local inverterSn
+  local waitTimeoutSeconds=60
+  local waitIntervalSeconds=2
+
+  inverterSn=$(bashio::config 'inverter_sn')
 
   payload=$(mqtt_build_payload_from_state)
+  mqtt_publish "$(mqtt_apply_progress_topic)" "ON" true
+  mqtt_publish "$(mqtt_apply_status_topic)" "Sending update request" true
+
   authToken=$(loginHypon)
+  if [ -z "$authToken" ] || [ "$authToken" = "null" ]; then
+    mqtt_publish "$(mqtt_apply_status_topic)" "Authentication failed" true
+    mqtt_publish "$(mqtt_apply_progress_topic)" "OFF" true
+    return 1
+  fi
 
   if sendInverterConfigPayload "$authToken" "$payload"; then
-    mqtt_publish "$(mqtt_status_topic)" "online" true
+    mqtt_publish "$(mqtt_apply_status_topic)" "Waiting for inverter response endpoint" true
+    if waitForInverterResponse200 "$authToken" "$inverterSn" "$waitTimeoutSeconds" "$waitIntervalSeconds"; then
+      mqtt_publish "$(mqtt_apply_status_topic)" "Update confirmed by inverter response endpoint" true
+      mqtt_publish "$(mqtt_apply_progress_topic)" "OFF" true
+      return 0
+    fi
+
+    mqtt_publish "$(mqtt_apply_status_topic)" "Timed out waiting for inverter response endpoint" true
+    mqtt_publish "$(mqtt_apply_progress_topic)" "OFF" true
+    return 1
   else
-    mqtt_publish "$(mqtt_status_topic)" "online" true
+    mqtt_publish "$(mqtt_apply_status_topic)" "Apply request failed" true
+    mqtt_publish "$(mqtt_apply_progress_topic)" "OFF" true
+    return 1
   fi
+}
+
+mqtt_sync_slot_from_hypon() {
+  local authToken=${1}
+  local slot=${2}
+  local inverterSn
+  local response
+  local httpCode
+  local body
+  local mode
+  local power
+  local start
+  local end
+  local action
+  local day1
+  local day2
+  local day3
+  local day4
+  local day5
+  local day6
+  local day7
+
+  inverterSn=$(bashio::config 'inverter_sn')
+  response=$(curl -s "$HYPON_URL/inverter/$inverterSn/config/TimeMode$slot" \
+    -H "$ACCEPT_HEADER" \
+    -H 'User-Agent: Mozilla/5.0' \
+    -H "authorization: Bearer $authToken" \
+    --write-out '\n%{http_code}')
+
+  httpCode=${response##*$'\n'}
+  body=${response%$'\n'*}
+
+  if [ "$httpCode" != "200" ]; then
+    bashio::log.debug "Skipping TimeMode$slot sync, HTTP $httpCode"
+    return 1
+  fi
+
+  if ! echo "$body" | jq -e . >/dev/null 2>&1; then
+    bashio::log.debug "Skipping TimeMode$slot sync, invalid JSON"
+    return 1
+  fi
+
+  mode=$(echo "$body" | jq -r 'if ((.data.timemode // .timemode // 0) | tonumber) == 1 then "discharge" else "charge" end')
+  power=$(echo "$body" | jq -r '(.data.timepower // .timepower // 100) | tonumber')
+  start=$(echo "$body" | jq -r '.data.timestarttime // .timestarttime // "03:30"')
+  end=$(echo "$body" | jq -r '.data.timeendtime // .timeendtime // "05:30"')
+  action=$(echo "$body" | jq -r 'if ((.data.time_enable // .time_enable // 1) | tonumber) == 0 then "disable" else "set" end')
+  day1=$(echo "$body" | jq -r '(.data.timeweekday1 // .timeweekday1 // 1) | tonumber')
+  day2=$(echo "$body" | jq -r '(.data.timeweekday2 // .timeweekday2 // 1) | tonumber')
+  day3=$(echo "$body" | jq -r '(.data.timeweekday3 // .timeweekday3 // 1) | tonumber')
+  day4=$(echo "$body" | jq -r '(.data.timeweekday4 // .timeweekday4 // 1) | tonumber')
+  day5=$(echo "$body" | jq -r '(.data.timeweekday5 // .timeweekday5 // 1) | tonumber')
+  day6=$(echo "$body" | jq -r '(.data.timeweekday6 // .timeweekday6 // 0) | tonumber')
+  day7=$(echo "$body" | jq -r '(.data.timeweekday7 // .timeweekday7 // 0) | tonumber')
+
+  jq \
+    --arg slot "$slot" \
+    --arg mode "$mode" \
+    --argjson power "$power" \
+    --arg start "$start" \
+    --arg end "$end" \
+    --arg action "$action" \
+    --argjson day1 "$day1" \
+    --argjson day2 "$day2" \
+    --argjson day3 "$day3" \
+    --argjson day4 "$day4" \
+    --argjson day5 "$day5" \
+    --argjson day6 "$day6" \
+    --argjson day7 "$day7" \
+    '(.slots //= {})
+    | (.slots[$slot] //= {mode:"charge",power:100,start:"03:30",end:"05:30",weekdays:{day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0}})
+    | .slots[$slot].mode = $mode
+    | .slots[$slot].power = $power
+    | .slots[$slot].start = $start
+    | .slots[$slot].end = $end
+    | (.slots[$slot].weekdays //= {day1:1,day2:1,day3:1,day4:1,day5:1,day6:0,day7:0})
+    | .slots[$slot].weekdays.day1 = $day1
+    | .slots[$slot].weekdays.day2 = $day2
+    | .slots[$slot].weekdays.day3 = $day3
+    | .slots[$slot].weekdays.day4 = $day4
+    | .slots[$slot].weekdays.day5 = $day5
+    | .slots[$slot].weekdays.day6 = $day6
+    | .slots[$slot].weekdays.day7 = $day7
+    | if (.slot|tostring) == $slot then .action = $action else . end' \
+    "$MQTT_STATE_FILE" > "$MQTT_STATE_FILE.tmp" && mv "$MQTT_STATE_FILE.tmp" "$MQTT_STATE_FILE"
+
+  return 0
+}
+
+mqtt_sync_from_hypon() {
+  local authToken
+  local slot
+  local syncedCount=0
+
+  if ! mqtt_sync_enabled; then
+    return 0
+  fi
+
+  mqtt_publish "$(mqtt_sync_status_topic)" "Sync started" true
+
+  authToken=$(loginHypon)
+  if [ -z "$authToken" ] || [ "$authToken" = "null" ]; then
+    bashio::log.error "MQTT sync: unable to authenticate to Hypon"
+    mqtt_publish "$(mqtt_sync_status_topic)" "Sync failed: authentication error" true
+    return 1
+  fi
+
+  for slot in 1 2 3 4
+  do
+    mqtt_publish "$(mqtt_sync_status_topic)" "Syncing TimeMode$slot" true
+    if mqtt_sync_slot_from_hypon "$authToken" "$slot"; then
+      syncedCount=$((syncedCount + 1))
+    fi
+  done
+
+  mqtt_publish_state
+  mqtt_publish "$(mqtt_sync_status_topic)" "Sync completed: $syncedCount/4 slots updated" true
+  return 0
+}
+
+startMqttSyncLoop() {
+  local interval
+
+  if ! mqtt_sync_enabled; then
+    return 0
+  fi
+
+  interval=$(mqtt_get_sync_interval)
+  bashio::log.info "Starting MQTT Hypon config sync loop every ${interval}s"
+
+  while true
+  do
+    mqtt_sync_from_hypon || true
+    sleep "$interval"
+  done
 }
 
 mqtt_update_state_field() {
@@ -756,8 +1007,13 @@ startMqttControlLoop() {
   mqtt_init_state
   mqtt_cleanup_legacy_discovery
   mqtt_publish_discovery
+  mqtt_sync_from_hypon || true
   mqtt_publish_state
   mqtt_publish "$(mqtt_status_topic)" "online" true
+  mqtt_publish "$(mqtt_apply_progress_topic)" "OFF" true
+  mqtt_publish "$(mqtt_apply_status_topic)" "Idle" true
+  mqtt_publish "$(mqtt_sync_status_topic)" "Idle" true
+  startMqttSyncLoop &
 
   bashio::log.info "Starting MQTT control loop on topic $commandTopic"
 

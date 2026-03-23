@@ -64,6 +64,8 @@ Required add-on options:
 - `mqtt_discovery_prefix` - Discovery prefix, default `homeassistant`.
 - `mqtt_base_topic` - Base topic for state/command topics, default `hypon_cloud`.
 - `mqtt_apply_on_change` - If `true`, each control change is pushed immediately to Hypon API. If `false`, use the `Apply Selected Slot Settings` button entity.
+- `mqtt_sync_from_hypon` - If `true`, periodically read TimeMode slot configuration from Hypon and refresh MQTT state.
+- `mqtt_sync_interval` - Sync interval in seconds for slot reads (`60` to `86400`, default `7200` = 120 minutes).
 
 Quick setup:
 
@@ -83,3 +85,21 @@ How to use from Home Assistant:
 - Day switches: `Slot Day Monday`, `Slot Day Tuesday`, `Slot Day Wednesday`, `Slot Day Thursday`, `Slot Day Friday`, `Slot Day Saturday`, `Slot Day Sunday` - tick on/off to control which days the selected slot runs.
 - `Apply Selected Slot Settings` - Send current selected-slot settings to Hypon when `mqtt_apply_on_change` is `false`.
 - `Disable Selected Slot` - Sends `disableTimeMode` for the selected slot immediately.
+
+Apply progress feedback in Home Assistant:
+
+- `0 Apply In Progress` (binary sensor) - `ON` while an update is being applied.
+- `0 Apply Status` (sensor) - shows progress text such as sending request, waiting for response, confirmed, or timed out.
+- `0 Sync Status` (sensor) - shows periodic sync progress/results for `TimeMode1..4` endpoint polling.
+
+After sending the update, the add-on waits for `HTTP 200` from:
+
+- `https://api.hypon.cloud/v2/inverter/<inverter_sn>/response`
+
+to confirm completion before clearing the in-progress indicator.
+
+Background slot sync endpoint:
+
+- `https://api.hypon.cloud/v2/inverter/<inverter_sn>/config/TimeModeX`
+
+where `X` is `1` to `4`. The add-on polls these endpoints on the configured interval and updates the MQTT slot entities to reflect inverter-side state.

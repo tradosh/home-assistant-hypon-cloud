@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.4
+- Changed default MQTT inverter sync interval to `7200` seconds (120 minutes)
+- Added MQTT `0 Sync Status` sensor updates during periodic `TimeMode1..4` polling
+
+## 1.3.3
+- Added periodic inverter slot sync from `/inverter/<inverter_sn>/config/TimeMode1..4` into MQTT state/entities
+- Added MQTT sync options: `mqtt_sync_from_hypon` and `mqtt_sync_interval`
+- Added apply progress/status feedback and response confirmation wait using `/inverter/<inverter_sn>/response`
+
 ## 1.3.2
  - Update the MQTT controls to represent better the UI of the HyponCloud app/UI
 

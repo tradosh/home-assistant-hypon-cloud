@@ -144,3 +144,48 @@ sendInverterConfigPayload () {
   return 1
 }
 
+# ------------------------------------------------------------------------------
+# Wait for inverter response endpoint to return HTTP 200.
+#
+# Arguments
+#  $1 The authentication token to use
+#  $2 Inverter serial number
+#  $3 Timeout in seconds
+#  $4 Poll interval in seconds
+# ------------------------------------------------------------------------------
+waitForInverterResponse200 () {
+  local authToken=${1}
+  local inverterSn=${2}
+  local timeoutSeconds=${3}
+  local intervalSeconds=${4}
+  local elapsed=0
+  local response
+  local httpCode
+  local responseBody
+
+  while [ "$elapsed" -lt "$timeoutSeconds" ]
+  do
+    response=$(curl -s "$HYPON_URL/inverter/$inverterSn/response" \
+      -H "$ACCEPT_HEADER" \
+      -H 'User-Agent: Mozilla/5.0' \
+      -H "authorization: Bearer $authToken" \
+      --write-out '\n%{http_code}')
+
+    httpCode=${response##*$'\n'}
+    responseBody=${response%$'\n'*}
+
+    if [ "$httpCode" = "200" ]; then
+      bashio::log.info "Inverter response endpoint returned HTTP 200"
+      return 0
+    fi
+
+    bashio::log.debug "Waiting for inverter response endpoint. http=$httpCode elapsed=${elapsed}s"
+    sleep "$intervalSeconds"
+    elapsed=$((elapsed + intervalSeconds))
+  done
+
+  bashio::log.error "Timed out waiting for inverter response endpoint HTTP 200"
+  bashio::log.debug "Last inverter response body: $responseBody"
+  return 1
+}
+
