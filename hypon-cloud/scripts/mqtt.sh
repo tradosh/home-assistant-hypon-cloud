@@ -545,78 +545,6 @@ mqtt_publish_discovery() {
       dev: $dev
     }')" true
 
-  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot1_enabled)" "$(jq -nc \
-    --arg name "10.1 Slot 1 Enabled" \
-    --arg uniq "hypon_${inverterSn}_timemode_slot1_enabled" \
-    --arg stat "$(mqtt_state_topic slot1_enabled)" \
-    --arg avty "$statusTopic" \
-    --argjson dev "$deviceJson" \
-    '{
-      name: $name,
-      uniq_id: $uniq,
-      stat_t: $stat,
-      pl_on: "ON",
-      pl_off: "OFF",
-      avty_t: $avty,
-      pl_avail: "online",
-      pl_not_avail: "offline",
-      dev: $dev
-    }')" true
-
-  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot2_enabled)" "$(jq -nc \
-    --arg name "10.2 Slot 2 Enabled" \
-    --arg uniq "hypon_${inverterSn}_timemode_slot2_enabled" \
-    --arg stat "$(mqtt_state_topic slot2_enabled)" \
-    --arg avty "$statusTopic" \
-    --argjson dev "$deviceJson" \
-    '{
-      name: $name,
-      uniq_id: $uniq,
-      stat_t: $stat,
-      pl_on: "ON",
-      pl_off: "OFF",
-      avty_t: $avty,
-      pl_avail: "online",
-      pl_not_avail: "offline",
-      dev: $dev
-    }')" true
-
-  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot3_enabled)" "$(jq -nc \
-    --arg name "10.3 Slot 3 Enabled" \
-    --arg uniq "hypon_${inverterSn}_timemode_slot3_enabled" \
-    --arg stat "$(mqtt_state_topic slot3_enabled)" \
-    --arg avty "$statusTopic" \
-    --argjson dev "$deviceJson" \
-    '{
-      name: $name,
-      uniq_id: $uniq,
-      stat_t: $stat,
-      pl_on: "ON",
-      pl_off: "OFF",
-      avty_t: $avty,
-      pl_avail: "online",
-      pl_not_avail: "offline",
-      dev: $dev
-    }')" true
-
-  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot4_enabled)" "$(jq -nc \
-    --arg name "10.4 Slot 4 Enabled" \
-    --arg uniq "hypon_${inverterSn}_timemode_slot4_enabled" \
-    --arg stat "$(mqtt_state_topic slot4_enabled)" \
-    --arg avty "$statusTopic" \
-    --argjson dev "$deviceJson" \
-    '{
-      name: $name,
-      uniq_id: $uniq,
-      stat_t: $stat,
-      pl_on: "ON",
-      pl_off: "OFF",
-      avty_t: $avty,
-      pl_avail: "online",
-      pl_not_avail: "offline",
-      dev: $dev
-    }')" true
-
   mqtt_publish "$(mqtt_discovery_topic button hypon_${inverterSn}_timemode_apply)" "$(jq -nc \
     --arg name "8 Apply Selected Slot Settings" \
     --arg uniq "hypon_${inverterSn}_timemode_apply" \
@@ -645,6 +573,78 @@ mqtt_publish_discovery() {
       uniq_id: $uniq,
       cmd_t: $cmd,
       pl_prs: "{\"field\":\"disable\",\"value\":\"disable\"}",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot1_enabled)" "$(jq -nc \
+    --arg name "Slot 1 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot1_enabled" \
+    --arg stat "$(mqtt_state_topic slot1_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot2_enabled)" "$(jq -nc \
+    --arg name "Slot 2 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot2_enabled" \
+    --arg stat "$(mqtt_state_topic slot2_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot3_enabled)" "$(jq -nc \
+    --arg name "Slot 3 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot3_enabled" \
+    --arg stat "$(mqtt_state_topic slot3_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
+      avty_t: $avty,
+      pl_avail: "online",
+      pl_not_avail: "offline",
+      dev: $dev
+    }')" true
+
+  mqtt_publish "$(mqtt_discovery_topic binary_sensor hypon_${inverterSn}_timemode_slot4_enabled)" "$(jq -nc \
+    --arg name "Slot 4 Enabled" \
+    --arg uniq "hypon_${inverterSn}_timemode_slot4_enabled" \
+    --arg stat "$(mqtt_state_topic slot4_enabled)" \
+    --arg avty "$statusTopic" \
+    --argjson dev "$deviceJson" \
+    '{
+      name: $name,
+      uniq_id: $uniq,
+      stat_t: $stat,
+      pl_on: "ON",
+      pl_off: "OFF",
       avty_t: $avty,
       pl_avail: "online",
       pl_not_avail: "offline",
