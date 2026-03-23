@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.2
+ - Update the MQTT controls to represent better the UI of the HyponCloud app/UI
+
 ## 1.3.1
 - Removed slot/time-mode schedule fields from add-on options; schedule configuration is now MQTT-device driven only
 - Removed startup apply path based on add-on slot settings to avoid split configuration sources
