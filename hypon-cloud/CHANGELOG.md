@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.5
+- Added bounded exponential backoff for Hypon API login/daily/realtime requests (4 attempts, 1s initial delay, 8s max)
+- Hardened API response parsing to verify JSON before running `jq` and avoid intermittent parse failures
+- Improved error handling to refresh auth and continue when Hypon endpoints return transient non-JSON payloads
+
 ## 1.3.4
 - Changed default MQTT inverter sync interval to `7200` seconds (120 minutes)
 - Added MQTT `0 Sync Status` sensor updates during periodic `TimeMode1..4` polling
