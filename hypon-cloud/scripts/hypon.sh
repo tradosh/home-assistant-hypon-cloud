@@ -4,6 +4,43 @@ declare LOGIN_TEMPLATE='{"username":"","password":"","oem":null}'
 declare HYPON_URL="https://api.hypon.cloud/v2"
 declare ACCEPT_HEADER="accept: application/json"
 declare CONTENT_HEADER="content-type: application/json;charset=UTF-8"
+declare HYPON_RETRY_MAX_ATTEMPTS=4
+declare HYPON_RETRY_INITIAL_DELAY=1
+declare HYPON_RETRY_MAX_DELAY=8
+
+hypon_request_json_with_backoff () {
+  local requestName=${1}
+  local attempt=1
+  local delay=$HYPON_RETRY_INITIAL_DELAY
+  local response
+
+  shift
+
+  while [ "$attempt" -le "$HYPON_RETRY_MAX_ATTEMPTS" ]
+  do
+    response=$(curl -s "$@")
+
+    if echo "$response" | jq -e . >/dev/null 2>&1; then
+      echo "$response"
+      return 0
+    fi
+
+    if [ "$attempt" -lt "$HYPON_RETRY_MAX_ATTEMPTS" ]; then
+      bashio::log.debug "$requestName returned non-JSON payload on attempt $attempt/$HYPON_RETRY_MAX_ATTEMPTS, retrying in ${delay}s"
+      sleep "$delay"
+      delay=$((delay * 2))
+      if [ "$delay" -gt "$HYPON_RETRY_MAX_DELAY" ]; then
+        delay=$HYPON_RETRY_MAX_DELAY
+      fi
+    fi
+
+    attempt=$((attempt + 1))
+  done
+
+  bashio::log.error "$requestName failed after $HYPON_RETRY_MAX_ATTEMPTS attempts"
+  echo "$response"
+  return 1
+}
 
 # ------------------------------------------------------------------------------
 # Authenticate with the Hypon Cloud Platform
@@ -26,14 +63,22 @@ loginHypon () {
 
     bashio::log.info "Login Start"
 
-    loginResponse=$(curl -s "$HYPON_URL/login" \
+    loginResponse=$(hypon_request_json_with_backoff "Hypon login" "$HYPON_URL/login" \
       -H "$ACCEPT_HEADER" \
       -H "$CONTENT_HEADER" \
       -H 'User-Agent: Mozilla/5.0' \
       --data-raw "$loginData")
 
       bashio::log.info "Login End"
-      echo $loginResponse | jq -r '.data.token'
+
+    if ! echo "$loginResponse" | jq -e . >/dev/null 2>&1; then
+      bashio::log.error "Login response is not valid JSON"
+      bashio::log.debug "Login raw response: $loginResponse"
+      echo ""
+      return 1
+    fi
+
+    echo "$loginResponse" | jq -r '.data.token // empty'
 }
 
 # ------------------------------------------------------------------------------
@@ -53,13 +98,13 @@ retrieveSolarData () {
 
         bashio::log.info "Load Solar Data Start"
 
-    dataRequest=$(curl -s "$dataUrl" \
+    dataRequest=$(hypon_request_json_with_backoff "Load solar data" "$dataUrl" \
                               -H "$ACCEPT_HEADER" \
                               -H 'User-Agent: Mozilla/5.0' \
                               -H "authorization: Bearer $authToken")
 
         bashio::log.info "Load Solar Data End"
-    echo $dataRequest
+    echo "$dataRequest"
 }
 
 # ------------------------------------------------------------------------------
@@ -78,13 +123,13 @@ retrieveRealTimeSolarData () {
 
     system_id=$(bashio::config 'system_id')
     dataUrl="$HYPON_URL/plant/$system_id/monitor?refresh=true"
-    dataRequest=$(curl -s "$dataUrl" \
+    dataRequest=$(hypon_request_json_with_backoff "Load realtime data" "$dataUrl" \
                               -H "$ACCEPT_HEADER" \
                               -H 'User-Agent: Mozilla/5.0' \
                               -H "authorization: Bearer $authToken")
 
     bashio::log.info "Load Realtime Data End"
-    echo $dataRequest
+    echo "$dataRequest"
 }
 
 # ------------------------------------------------------------------------------

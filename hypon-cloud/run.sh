@@ -13,7 +13,23 @@ loadSensorData() {
   	solarData=$(retrieveSolarData "$authToken")
   	realTimeData=$(retrieveRealTimeSolarData "$authToken")
 
-  	solarDataResponseCode=$(echo $solarData | jq -r '.code')
+    if ! echo "$solarData" | jq -e . >/dev/null 2>&1; then
+      bashio::log.error "Invalid JSON from daily data endpoint, refreshing auth token"
+      bashio::log.debug "Daily data raw response: $solarData"
+      authToken=$(loginHypon)
+      sleep "$(bashio::config 'refresh_time')"
+      continue
+    fi
+
+    if ! echo "$realTimeData" | jq -e . >/dev/null 2>&1; then
+      bashio::log.error "Invalid JSON from realtime endpoint, refreshing auth token"
+      bashio::log.debug "Realtime raw response: $realTimeData"
+      authToken=$(loginHypon)
+      sleep "$(bashio::config 'refresh_time')"
+      continue
+    fi
+
+		solarDataResponseCode=$(echo "$solarData" | jq -r '.code // "unknown"')
 
     bashio::log.debug "Response Code From loading solar data: $solarDataResponseCode"
 
