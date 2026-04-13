@@ -1,7 +1,7 @@
 name: "Hypon Cloud TR"
 description: "Integrate Hypon Cloud with Home Assistant-TR"
 url: "https://github.com/tradosh/home-assistant-hypon-cloud"
-version: "1.3.5"
+version: "1.3.6"
 slug: "hypon_cloud_integration_tr"
 arch:
   - armhf

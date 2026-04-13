@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.6
+- Fixed crash-restart loop when Hypon login fails at startup: replaced one-shot login with a retry loop that waits 60 seconds between attempts instead of exiting
+- Fixed `set -e` crash hazard on all `loginHypon` re-auth calls inside the data refresh loop by suppressing non-zero exit codes with `|| true`
+
 ## 1.3.5
 - Added bounded exponential backoff for Hypon API login/daily/realtime requests (4 attempts, 1s initial delay, 8s max)
 - Hardened API response parsing to verify JSON before running `jq` and avoid intermittent parse failures

@@ -16,7 +16,7 @@ loadSensorData() {
     if ! echo "$solarData" | jq -e . >/dev/null 2>&1; then
       bashio::log.error "Invalid JSON from daily data endpoint, refreshing auth token"
       bashio::log.debug "Daily data raw response: $solarData"
-      authToken=$(loginHypon)
+      authToken=$(loginHypon) || true
       sleep "$(bashio::config 'refresh_time')"
       continue
     fi
@@ -24,7 +24,7 @@ loadSensorData() {
     if ! echo "$realTimeData" | jq -e . >/dev/null 2>&1; then
       bashio::log.error "Invalid JSON from realtime endpoint, refreshing auth token"
       bashio::log.debug "Realtime raw response: $realTimeData"
-      authToken=$(loginHypon)
+      authToken=$(loginHypon) || true
       sleep "$(bashio::config 'refresh_time')"
       continue
     fi
@@ -54,13 +54,20 @@ loadSensorData() {
 
     else
       bashio::log.error "Data Retrieval Error - updating auth token"
-      authToken=$(loginHypon)
+      authToken=$(loginHypon) || true
     fi
   	sleep "$(bashio::config 'refresh_time')"
   done
 }
 
 bashio::log.info "Loading Authentication Token"
-authToken=$(loginHypon)
+authToken=""
+until [ -n "$authToken" ]; do
+  authToken=$(loginHypon) || true
+  if [ -z "$authToken" ]; then
+    bashio::log.warning "Login failed, retrying in 60 seconds..."
+    sleep 60
+  fi
+done
 startMqttControlLoop &
 loadSensorData "$authToken"
